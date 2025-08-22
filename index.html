@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecciones Ortogonales 3D</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <main class="viewer-container">
+            <div class="viewer-3d">
+                <div class="navigation-bar">
+                    <div class="nav-title">
+                        <h1>Proyecciones Ortogonales</h1>
+                        <p class="shortcuts">← → (navegar)</p>
+                    </div>
+                    <div class="nav-controls">
+                        <button id="prev-model" title="Modelo Anterior" disabled>◀</button>
+                        <div class="model-info">
+                            <span id="current-model">Cargando...</span>
+                            <input type="number" id="goto-model" min="1" max="1" value="1" title="Ir al modelo..."
+                                disabled>
+                        </div>
+                        <button id="next-model" title="Modelo Siguiente" disabled>▶</button>
+                    </div>
+                </div>
+                <canvas id="canvas-3d"></canvas>
+                <div class="view-label">Vista 3D Interactiva</div>
+                <div class="copyright-bar">
+                    <div class="copyright">
+                        © <a href="https://www.creared.edu.co" target="_blank"
+                            rel="noopener noreferrer">WWW.CREARED.EDU.CO - PreUNAL y PreICFES</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="orthographic-views">
+                <div class="view-item">
+                    <canvas id="canvas-top"></canvas>
+                    <div class="view-label">Vista Superior</div>
+                </div>
+
+                <div class="view-item">
+                    <canvas id="canvas-front"></canvas>
+                    <div class="view-label">Vista Frontal</div>
+                </div>
+
+                <div class="view-item">
+                    <canvas id="canvas-side"></canvas>
+                    <div class="view-label">Vista Lateral</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="config.js"></script>
+    <script src="model.js"></script>
+    <script src="view.js"></script>
+    <script src="controller.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>

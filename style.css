@@ -212,6 +212,12 @@ canvas {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 0.5em 1em;
+}
+
+.copyright,
+.github-link {
+    margin: 0;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
@@ -270,17 +276,4 @@ canvas {
         padding: 4px 8px;
         font-size: 11px;
     }
-}
-
-/* Alineación de la barra de copyright */
-.copyright-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5em 1em;
-}
-
-.copyright,
-.github-link {
-    margin: 0;
 }

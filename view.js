@@ -116,9 +116,9 @@ window.ViewManager = class ViewManager {
         }
 
         this.renderer3D.render(this.scene3D, this.camera3D);
-        
+
         // Usar renderer keys cacheadas
-        
+
         this.rendererKeys.forEach(key => {
             if (this.renderers[key] && this.scenes[key] && this.cameras[key]) {
                 this.renderers[key].render(this.scenes[key], this.cameras[key]);
@@ -139,12 +139,12 @@ window.ViewManager = class ViewManager {
     // Método para ajustar cámaras ortográficas (evita duplicación)
     adjustOrthographicCameras(maxDim) {
         const margin = maxDim * window.AppConfig.ORTHOGRAPHIC.MARGIN_FACTOR;
-        
+
         // Cache camera keys para evitar Object.keys() repetido
         if (!this.cameraKeys) {
             this.cameraKeys = Object.keys(this.cameras);
         }
-        
+
         this.cameraKeys.forEach(key => {
             const camera = this.cameras[key];
             const canvas = this.canvasMap[key];
@@ -237,14 +237,14 @@ window.ViewManager = class ViewManager {
             { canvas: this.canvasFront, key: 'front', position: [0, 0, 10], up: [0, 1, 0] },
             { canvas: this.canvasSide, key: 'side', position: [10, 0, 0], up: [0, 1, 0] }
         ];
-        
+
         // Pre-calcular vectores normalizados para reutilizar
         const normalizedVectors = configs.map(cfg => ({
             ...cfg,
             dirPos: new this.THREE.Vector3(...cfg.position).normalize().multiplyScalar(10),
             fillPos: new this.THREE.Vector3(-cfg.position[0] * 0.5, -cfg.position[1] * 0.5, -cfg.position[2] * 0.5).normalize().multiplyScalar(8)
         }));
-        
+
         normalizedVectors.forEach(cfg => {
             if (!cfg.canvas) return;
             const container = cfg.canvas.parentElement;
@@ -281,7 +281,7 @@ window.ViewManager = class ViewManager {
             });
             this.renderers[cfg.key].setSize(container.clientWidth, container.clientHeight);
         });
-        
+
         // Inicializar cache de renderer keys
         this.rendererKeys = Object.keys(this.renderers);
     }
@@ -329,15 +329,15 @@ window.ViewManager = class ViewManager {
                 (gltf) => {
                     this.currentModel = gltf.scene;
                     this.currentModel.name = 'model';
-                    
+
                     // Cache material properties para evitar modificaciones redundantes
                     const materialCache = new Map();
-                    
+
                     this.currentModel.traverse((child) => {
                         if (child.isMesh) {
                             child.castShadow = true;
                             child.receiveShadow = true;
-                            
+
                             if (child.material) {
                                 const materialKey = child.material.uuid;
                                 if (!materialCache.has(materialKey)) {
@@ -364,11 +364,18 @@ window.ViewManager = class ViewManager {
                             }
                         }
                     });
-                    
-                    this.scene3D.add(this.currentModel);
+
+                                        this.scene3D.add(this.currentModel);
                     this.centerModel();
                     this.renderOrthogonalViews(modelUrl);
                     this.markNeedsRender();
+                    // Animación de transición para el modelo 3D
+                    if (this.canvas3d) {
+                        this.canvas3d.classList.remove('fade-in');
+                        requestAnimationFrame(() => {
+                            this.canvas3d.classList.add('fade-in');
+                        });
+                    }
                     resolve();
                 },
                 undefined,
@@ -417,7 +424,7 @@ window.ViewManager = class ViewManager {
             this.sharedCenter = new this.THREE.Vector3();
             this.sharedSize = new this.THREE.Vector3();
         }
-        
+
         // Calcular dimensiones una sola vez
         this.sharedBox.setFromObject(modelToClone);
         const center = this.sharedBox.getCenter(this.sharedCenter);
@@ -428,7 +435,7 @@ window.ViewManager = class ViewManager {
         if (!this.sceneKeys) {
             this.sceneKeys = Object.keys(this.scenes);
         }
-        
+
         // Optimizar clonación usando geometría compartida cuando sea posible
         this.sceneKeys.forEach(key => {
             const clone = modelToClone.clone();
@@ -452,26 +459,26 @@ window.ViewManager = class ViewManager {
     // Centra el modelo y ajusta cámaras ortogonales
     centerModel() {
         if (!this.currentModel) return;
-        
+
         // Reutilizar objetos compartidos para evitar duplicación con renderOrthogonalViews
         if (!this.sharedBox) {
             this.sharedBox = new this.THREE.Box3();
             this.sharedCenter = new this.THREE.Vector3();
             this.sharedSize = new this.THREE.Vector3();
         }
-        
+
         this.sharedBox.setFromObject(this.currentModel);
         const center = this.sharedBox.getCenter(this.sharedCenter);
         const size = this.sharedBox.getSize(this.sharedSize);
         this.currentModel.position.sub(center);
-        
+
         // Cache scene values para evitar Object.values() repetido
         if (!this.sceneValues) {
             this.sceneValues = Object.values(this.scenes);
         }
-        
+
         // No necesario sincronizar posiciones aquí ya que renderOrthogonalViews se llama después
-        
+
         // Ajustar distancia de cámara principal
         const maxDim = Math.max(size.x, size.y, size.z);
         this.camera3D.position.setLength(maxDim * 3);

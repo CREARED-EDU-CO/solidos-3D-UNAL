@@ -6,10 +6,8 @@
     --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     --border-radius: 10px;
     --border-radius-sm: 8px;
-    --border-radius-xs: 4px;
     --padding-sm: 8px;
     --padding-md: 15px;
-    --font-size-sm: 12px;
     --font-size-xs: 9px;
     --transition: all 0.3s ease;
 }
@@ -84,7 +82,7 @@ body {
 }
 
 .shortcuts {
-    font-size: 9px;
+    font-size: var(--font-size-xs);
     color: #666;
     margin: 0;
 }
@@ -121,23 +119,14 @@ body {
     font-size: 12px;
 }
 
-/* ===== BOTONES Y ELEMENTOS DE FORMULARIO ===== */
-select,
+/* ===== BOTONES ===== */
 button {
     padding: 6px 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-select:hover,
-button:hover {
-    border-color: #667eea;
-}
-
-button {
+    transition: var(--transition);
     background: #667eea;
     color: white;
     border-color: #667eea;
@@ -218,6 +207,13 @@ canvas {
     font-weight: bold;
 }
 
+/* ===== BARRA DE COPYRIGHT ===== */
+.copyright-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1200px) {
     .viewer-container {
@@ -267,10 +263,9 @@ canvas {
     }
 
     .shortcuts {
-        font-size: 9px;
+        font-size: var(--font-size-xs);
     }
 
-    select,
     button {
         padding: 4px 8px;
         font-size: 11px;

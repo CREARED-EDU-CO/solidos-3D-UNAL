@@ -47,14 +47,7 @@ window.AppController = class AppController {
             this.viewManager.modelNumberInput.max = this.modelManager.availableModels.length;
             this.viewManager.modelNumberInput.value = this.modelManager.currentIndex + 1;
         }
-        // Animación de transición para el modelo 3D
-        if (this.viewManager.canvas3d) {
-            this.viewManager.canvas3d.classList.remove('fade-in');
-            // Usar requestAnimationFrame en lugar de forzar reflow
-            requestAnimationFrame(() => {
-                this.viewManager.canvas3d.classList.add('fade-in');
-            });
-        }
+        
         // Renderiza el modelo 3D y las vistas ortogonales con control de estado
         if (!this.isRendering) {
             this.isRendering = true;

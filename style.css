@@ -227,23 +227,29 @@ canvas {
     }
 }
 
+@media (max-width: 992px) {
+    .viewer-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+    }
+
+    .orthographic-views {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+}
+
 @media (max-width: 768px) {
     .app-container {
         padding: 10px;
     }
 
-    .viewer-container {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto;
-        gap: 10px;
-    }
-
     .viewer-3d {
-        min-height: 300px;
+        min-height: 50vh;
     }
 
     .orthographic-views {
-        flex-direction: row;
+        flex-direction: column;
         height: auto;
     }
 

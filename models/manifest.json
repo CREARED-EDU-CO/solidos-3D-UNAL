@@ -2,7 +2,7 @@
   "models": [
     "models/solido_001.glb",
     "models/solido_002.glb",
-    "Figura_010.stl",
+    "Figura_010.glb",
     "Figura_020.stl"
   ]
 }

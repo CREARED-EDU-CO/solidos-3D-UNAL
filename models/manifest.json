@@ -1,6 +1,8 @@
 {
   "models": [
     "models/solido_001.glb",
-    "models/solido_002.glb"
+    "models/solido_002.glb",
+    "Figura_010.stl",
+    "Figura_020.stl"
   ]
 }

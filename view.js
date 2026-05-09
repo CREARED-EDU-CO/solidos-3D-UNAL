@@ -21,6 +21,8 @@ window.ViewManager = class ViewManager {
         this.gridSize = null; // Cache for grid size
 
         // Propiedades para escenas y renderizadores
+        this.technicalMaterial = null; // Material plano para dibujo técnico
+        this.technicalLineMaterial = null; // Material de aristas para dibujo técnico
         this.scene3D = null;
         this.camera3D = null;
         this.renderer3D = null;
@@ -238,32 +240,13 @@ window.ViewManager = class ViewManager {
             { canvas: this.canvasSide, key: 'side', position: [10, 0, 0], up: [0, 1, 0] }
         ];
 
-        // Pre-calcular vectores normalizados para reutilizar
-        const normalizedVectors = configs.map(cfg => ({
-            ...cfg,
-            dirPos: new this.THREE.Vector3(...cfg.position).normalize().multiplyScalar(10),
-            fillPos: new this.THREE.Vector3(-cfg.position[0] * 0.5, -cfg.position[1] * 0.5, -cfg.position[2] * 0.5).normalize().multiplyScalar(8)
-        }));
-
-        normalizedVectors.forEach(cfg => {
+        configs.forEach(cfg => {
             if (!cfg.canvas) return;
             const container = cfg.canvas.parentElement;
             this.containerCache[cfg.key] = container; // Cache container
 
             this.scenes[cfg.key] = new this.THREE.Scene();
             this.scenes[cfg.key].background = new this.THREE.Color(0xffffff);
-            this.scenes[cfg.key].add(new this.THREE.AmbientLight(0xffffff, 0.9));
-
-            // Usar vectores pre-calculados
-            const dirLight = new this.THREE.DirectionalLight(0xffffff, window.AppConfig.ORTHOGRAPHIC.LIGHT_INTENSITY);
-            dirLight.position.copy(cfg.dirPos);
-            dirLight.castShadow = false; // Deshabilitar sombras para luz de relleno
-            this.scenes[cfg.key].add(dirLight);
-
-            const fillLight = new this.THREE.DirectionalLight(0xffffff, window.AppConfig.ORTHOGRAPHIC.FILL_INTENSITY);
-            fillLight.position.copy(cfg.fillPos);
-            fillLight.castShadow = false; // Deshabilitar sombras para luz de relleno
-            this.scenes[cfg.key].add(fillLight);
 
             const aspect = container.clientHeight > 0 ? container.clientWidth / container.clientHeight : 1;
             const size = window.AppConfig.ORTHOGRAPHIC.SIZE;
@@ -284,6 +267,67 @@ window.ViewManager = class ViewManager {
 
         // Inicializar cache de renderer keys
         this.rendererKeys = Object.keys(this.renderers);
+    }
+
+    createTechnicalProjectionModel(sourceModel) {
+        const THREE = this.THREE;
+        const config = window.AppConfig.TECHNICAL_DRAWING || {};
+        const faceColor = config.FACE_COLOR ?? 0xffffff;
+        const edgeColor = config.EDGE_COLOR ?? 0x111111;
+        const thresholdAngle = config.EDGE_THRESHOLD_ANGLE ?? 12;
+
+        if (!this.technicalMaterial) {
+            this.technicalMaterial = new THREE.MeshBasicMaterial({
+                color: faceColor,
+                polygonOffset: true,
+                polygonOffsetFactor: 1,
+                polygonOffsetUnits: 1
+            });
+        }
+
+        if (!this.technicalLineMaterial) {
+            this.technicalLineMaterial = new THREE.LineBasicMaterial({
+                color: edgeColor,
+                linewidth: config.EDGE_LINE_WIDTH || 1
+            });
+        }
+
+        const projectionModel = sourceModel.clone(true);
+        projectionModel.name = 'model';
+        projectionModel.userData.isTechnicalProjection = true;
+
+        projectionModel.traverse((child) => {
+            if (!child.isMesh || !child.geometry) return;
+
+            child.material = this.technicalMaterial.clone();
+            child.castShadow = false;
+            child.receiveShadow = false;
+
+            const edgeGeometry = new THREE.EdgesGeometry(child.geometry, thresholdAngle);
+            const edges = new THREE.LineSegments(edgeGeometry, this.technicalLineMaterial.clone());
+            edges.name = 'technical-edges';
+            edges.userData.isGeneratedEdgeOverlay = true;
+            child.add(edges);
+        });
+
+        return projectionModel;
+    }
+
+    disposeOrthographicModel(model) {
+        model.traverse((child) => {
+            if (child.isLineSegments && child.userData.isGeneratedEdgeOverlay) {
+                if (child.geometry) child.geometry.dispose();
+                if (child.material) child.material.dispose();
+            }
+
+            if (child.isMesh && child.material) {
+                if (Array.isArray(child.material)) {
+                    child.material.forEach(material => material.dispose());
+                } else {
+                    child.material.dispose();
+                }
+            }
+        });
     }
 
     // Renderiza el modelo principal en la escena 3D
@@ -401,15 +445,7 @@ window.ViewManager = class ViewManager {
             for (let i = scene.children.length - 1; i >= 0; i--) {
                 const obj = scene.children[i];
                 if (obj.name === 'model') {
-                    obj.traverse((child) => {
-                        if (child.isMesh) {
-                            if (child.geometry) child.geometry.dispose();
-                            if (child.material) {
-                                if (child.material.map) child.material.map.dispose();
-                                child.material.dispose();
-                            }
-                        }
-                    });
+                    this.disposeOrthographicModel(obj);
                     scene.remove(obj);
                 }
             }
@@ -436,10 +472,9 @@ window.ViewManager = class ViewManager {
             this.sceneKeys = Object.keys(this.scenes);
         }
 
-        // Optimizar clonación usando geometría compartida cuando sea posible
+        // Generar proyecciones tipo dibujo industrial: caras blancas y aristas negras
         this.sceneKeys.forEach(key => {
-            const clone = modelToClone.clone();
-            clone.name = 'model';
+            const clone = this.createTechnicalProjectionModel(modelToClone);
             // Usar la posición ya centrada del modelo principal si existe
             if (this.currentModel && modelToClone === this.currentModel) {
                 clone.position.copy(this.currentModel.position);
@@ -451,7 +486,8 @@ window.ViewManager = class ViewManager {
         });
 
         // Ajustar cámaras una sola vez después del bucle
-        this.adjustOrthographicCameras(maxDim);
+        const cameraPadding = window.AppConfig.TECHNICAL_DRAWING?.CAMERA_PADDING_FACTOR || 1;
+        this.adjustOrthographicCameras(maxDim * cameraPadding);
         this.markNeedsRender();
         return Promise.resolve();
     }

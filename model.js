@@ -2,9 +2,14 @@
 // Modelo: gestiona la carga y el estado de los modelos 3D
 
 window.ModelManager = class ModelManager {
-    constructor(modelPath = window.AppConfig.MODEL_PATH, maxModels = window.AppConfig.MAX_MODELS) {
+    constructor(
+        modelPath = window.AppConfig.MODEL_PATH,
+        maxModels = window.AppConfig.MAX_MODELS,
+        supportedExtensions = window.AppConfig.SUPPORTED_MODEL_EXTENSIONS
+    ) {
         this.modelPath = modelPath;
         this.maxModels = maxModels;
+        this.supportedExtensions = supportedExtensions || [];
         this.availableModels = [];
         this.currentIndex = 0;
     }
@@ -16,7 +21,10 @@ window.ModelManager = class ModelManager {
             if (!response.ok) throw new Error('No se pudo cargar manifest.json');
             const manifest = await response.json();
             if (manifest.models && Array.isArray(manifest.models) && manifest.models.length > 0) {
-                this.availableModels = manifest.models;
+                this.availableModels = this.validateModelEntries(manifest.models);
+                if (this.availableModels.length === 0) {
+                    this.availableModels.push(null);
+                }
             } else {
                 this.availableModels.push(null);
             }
@@ -31,6 +39,26 @@ window.ModelManager = class ModelManager {
             }
             this.availableModels.push(null);
         }
+    }
+
+    validateModelEntries(models) {
+        const uniqueModels = [];
+        const seen = new Set();
+
+        models.slice(0, this.maxModels).forEach((modelUrl) => {
+            if (typeof modelUrl !== 'string') return;
+            const trimmedUrl = modelUrl.trim();
+            if (!trimmedUrl || seen.has(trimmedUrl)) return;
+            if (!trimmedUrl.startsWith(this.modelPath)) return;
+
+            const extension = trimmedUrl.split('.').pop().toLowerCase();
+            if (!this.supportedExtensions.includes(extension)) return;
+
+            seen.add(trimmedUrl);
+            uniqueModels.push(trimmedUrl);
+        });
+
+        return uniqueModels;
     }
 
     getCurrentModelUrl() {

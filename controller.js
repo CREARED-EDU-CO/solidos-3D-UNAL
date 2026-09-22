@@ -7,6 +7,7 @@ window.AppController = class AppController {
             this.modelManager = new window.ModelManager();
             this.viewManager = new window.ViewManager();
             this.isRendering = false;
+            this.pendingRender = false;
             this.keydownHandler = null;
             this.viewManager.initialize();
             this.init();
@@ -22,6 +23,9 @@ window.AppController = class AppController {
         if (this.keydownHandler) {
             document.removeEventListener('keydown', this.keydownHandler);
             this.keydownHandler = null;
+        }
+        if (this.viewManager && typeof this.viewManager.cleanup === 'function') {
+            this.viewManager.cleanup();
         }
     }
 
@@ -50,14 +54,25 @@ window.AppController = class AppController {
         
         // Renderiza el modelo 3D y las vistas ortogonales con control de estado
         if (!this.isRendering) {
-            this.isRendering = true;
-            this.viewManager.render3D(currentUrl).catch((error) => {
-                const sanitizedMessage = String(error.message || 'Error desconocido').replace(/[\r\n]/g, ' ');
-                console.error('Error en renderizado:', sanitizedMessage);
-            }).finally(() => {
-                this.isRendering = false;
-            });
+            this.renderCurrentModel(currentUrl);
+        } else {
+            this.pendingRender = true;
         }
+    }
+
+    renderCurrentModel(modelUrl) {
+        this.isRendering = true;
+        this.pendingRender = false;
+
+        this.viewManager.render3D(modelUrl).catch((error) => {
+            const sanitizedMessage = String(error.message || 'Error desconocido').replace(/[\r\n]/g, ' ');
+            console.error('Error en renderizado:', sanitizedMessage);
+        }).finally(() => {
+            this.isRendering = false;
+            if (this.pendingRender) {
+                this.updateView();
+            }
+        });
     }
 
     handleNext() {

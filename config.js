@@ -5,6 +5,7 @@ window.AppConfig = {
     // Rutas y límites
     MODEL_PATH: 'models/',
     MAX_MODELS: 100,
+    SUPPORTED_MODEL_EXTENSIONS: ['glb', 'gltf', 'stl'],
 
     // Animaciones
     ANIMATION_DURATION: 1.5,
@@ -38,6 +39,11 @@ window.AppConfig = {
         SIZE: 5,
         LIGHT_INTENSITY: 1.1,
         FILL_INTENSITY: 0.3
+    },
+
+    MATERIAL: {
+        DARK_THRESHOLD: 0.2,
+        BRIGHTNESS_MULTIPLIER: 2.5
     },
 
     // Estilo de dibujo técnico para las proyecciones ortogonales

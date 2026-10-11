@@ -4,7 +4,7 @@
 window.ViewManager = class ViewManager {
     constructor() {
         this.THREE = window.THREE;
-        this.OrbitControls = window.OrbitControls;
+        this.OrbitControls = window.OrbitControls || (window.THREE && window.THREE.OrbitControls);
         this.GLTFLoader = window.THREE && window.THREE.GLTFLoader ? window.THREE.GLTFLoader : null;
         this.STLLoader = window.THREE && window.THREE.STLLoader ? window.THREE.STLLoader : null;
 
